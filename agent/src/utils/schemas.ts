@@ -1,0 +1,32 @@
+//schema is legal contract backend ->AI models ->frontend
+//structure such a way that u save cost
+import { z } from 'zod';
+
+export const WebSearchResultSchema = z.object(
+    {
+        title: z.string().min(1),
+        url:z.url(),
+        snippet: z.string().optional().default(""),
+    }
+);
+
+export const WebSearchResultsSchema = z.array(WebSearchResultSchema).max(10);
+export type WebSearchResult = z.infer<typeof WebSearchResultSchema>
+
+export const OpenUrlInputSchema = z.object({
+    url : z.url()
+
+})
+
+export const OpenUrlOutputSchema = z.object({
+    url : z.url(),
+    content : z.string().min(1)
+})
+
+export const SummarizeInputSchema = z.object({
+    text: z.string().min(50,"a lil bit more text to summarise")
+});
+
+export const SummarizeOutputSchema = z.object({
+    summary: z.string().min(1),
+});

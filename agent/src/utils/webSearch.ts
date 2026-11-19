@@ -6,7 +6,7 @@
 
 import { includes } from 'zod';
 import {env} from '../shared/env';
-import { WebSearchResultSchema } from './schema';
+import { WebSearchResultSchema } from './schemas';
 
 export async function webSearch(q : string){
     const query = (q?? '').trim();
