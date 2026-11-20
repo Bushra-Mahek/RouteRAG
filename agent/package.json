@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev" : "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +16,9 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@langchain/anthropic": "^1.6.5",
+    "@langchain/classic": "^1.0.61",
     "@langchain/core": "^1.4.2",
     "@langchain/google": "^0.2.16",
     "@langchain/google-genai": "^2.3.6",
