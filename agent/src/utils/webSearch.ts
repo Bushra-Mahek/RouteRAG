@@ -6,7 +6,7 @@
 
 import { includes } from 'zod';
 import {env} from '../shared/env';
-import { WebSearchResultSchema } from './schemas';
+import { WebSearchResultSchema, WebSearchResultsSchema} from './schemas';
 
 export async function webSearch(q : string){
     const query = (q?? '').trim();
@@ -24,7 +24,7 @@ async function searchTavilyUtil(query:string){
     const response = await fetch('https://api.tavily.com/search',{
         method: 'POST',
         headers:{
-            content_type: 'application/json',
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${env.TAVILY_API_KEY}`
         },
         body: JSON.stringify({
@@ -53,12 +53,12 @@ async function searchTavilyUtil(query:string){
             snippet: String(r?.content ?? '').trim().slice(0,220)
         }))
 
-        return WebSearchResultSchema.parse(normalized);
+        return WebSearchResultsSchema.parse(normalized);
 }
 
     async function safeText(res:Response){
         try{
-            return await res.json();
+            return await res.text();
         }
 
         catch{
