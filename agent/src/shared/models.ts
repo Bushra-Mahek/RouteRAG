@@ -43,3 +43,23 @@ import { BaseChatModel } from '@langchain/core/language_models/chat_models';
             break;
     }
  }
+
+ export function extractTextContent(content: unknown): string {
+  if (typeof content === "string") return content.trim();
+
+  if (Array.isArray(content)) {
+    return content
+      .map((block: any) => {
+        if (typeof block === "string") return block;
+        if (block && typeof block === "object" && "text" in block) {
+          return String(block.text ?? "");
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+  }
+
+  return String(content ?? "").trim();
+}

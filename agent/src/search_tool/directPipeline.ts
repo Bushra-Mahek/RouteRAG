@@ -2,6 +2,7 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { getChatModel } from "../shared/models";
 import { RunnableLambda } from "@langchain/core/runnables";
 import { candidate } from "./types";
+import { extractTextContent } from "../shared/models";
 
 //ask model gte short hepfuo answer
 export const directPath = RunnableLambda.from(
@@ -20,9 +21,7 @@ export const directPath = RunnableLambda.from(
             ]
         );
 
-        const directAns = (
-      typeof res.content === "string" ? res.content : String(res.content)
-    ).trim();
+        const directAns = extractTextContent(res.content);
 
     return {
       answer: directAns,

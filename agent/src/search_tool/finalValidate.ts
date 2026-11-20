@@ -6,6 +6,7 @@ import { candidate } from "./types";
 import { SearchAnswerSchema } from "../utils/schemas";
 import { getChatModel } from "../shared/models";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { extractTextContent } from "../shared/models";
 
 export const finalValidateAndPolish = RunnableLambda.from(
   async (candidate: candidate) => {
@@ -46,10 +47,7 @@ async function repairSearchAns(
     ),
   ]);
 
-  const text =
-    typeof response.content === "string"
-      ? response.content
-      : String(response.content);
+  const text = extractTextContent(response.content);
 
   const json = extractJson(text);
 

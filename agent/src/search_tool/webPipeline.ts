@@ -14,6 +14,7 @@ import { summarize } from "../utils/summarize";
 import { candidate } from "./types";
 import { getChatModel } from "../shared/models";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { extractTextContent } from "../shared/models";
 
 const setTopResults = 5;
 
@@ -106,11 +107,9 @@ export const ComposeStep = RunnableLambda.from(
         new HumanMessage(input.q),
       ]);
 
-      const directAns = (
-        typeof directResponseFromModel.content === "string"
-          ? directResponseFromModel.content
-          : String(directResponseFromModel.content)
-      ).trim();
+      const directAns = extractTextContent(directResponseFromModel.content);
+// and below:
+
 
       return {
         answer: directAns,
@@ -138,9 +137,8 @@ export const ComposeStep = RunnableLambda.from(
       ),
     ]);
 
-    const finalAns =
-      typeof res.content === "string" ? res.content : String(res.content);
-
+   
+    const finalAns = extractTextContent(res.content);
     const extractSources = input.pageSummaries.map((x) => x.url);
 
     return {
@@ -161,3 +159,5 @@ export const webPath = RunnableSequence.from([
   openAndSummarizeStep,
   ComposeStep,
 ]);
+
+
