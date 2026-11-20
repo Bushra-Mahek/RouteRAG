@@ -1,4 +1,4 @@
-# RouteRAG — Hybrid AI Search & LightRAG Knowledge Base
+# RouteRAG - Intelligent Web Research & Private Knowledge Assistant
 
 A full-stack AI search and Retrieval-Augmented Generation (RAG) platform built with **Next.js**, **TypeScript**, **Node.js**, **Express.js**, and **LangChain.js (LCEL)**. It dynamically routes user queries between direct LLM inference and live Tavily web scraping/summarization, and provides a grounded document ingestion and Q&A workspace.
 
