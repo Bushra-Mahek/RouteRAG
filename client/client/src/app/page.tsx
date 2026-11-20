@@ -1,68 +1,239 @@
-import Image from "next/image";
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { API_URL } from "@/lib/config";
+import Link from "next/link";
+import { FormEvent, useEffect, useRef, useState } from "react";
+
+type SearchResponse = {
+  answer: string;
+  sources: string[];
+};
+
+type CurrentChatTurn =
+  | {
+      role: "user";
+      content: string;
+    }
+  | {
+      role: "assistant";
+      content: string;
+      sources: string[];
+      time: number;
+      error?: string;
+    };
 
 export default function Home() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [chat, setChat] = useState<CurrentChatTurn[]>([]);
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [chat]);
+
+  async function runSearch(prompt: string) {
+    setLoading(true);
+    setChat((old) => [...old, { role: "user", content: prompt }]);
+    const oldTime = performance.now();
+
+    try {
+      const res = await fetch(`${API_URL}/search`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ q: prompt }),
+      });
+      const json = await res.json();
+      const timeDiff = Math.round(performance.now() - oldTime);
+      // error handling
+
+      if (!res.ok) {
+        const errorMsg = "Request failed";
+        setChat((old) => [
+          ...old,
+          {
+            role: "assistant",
+            content:
+              "I tried to ans, but something went wrong. Please try again",
+            sources: [],
+            time: timeDiff,
+            error: errorMsg,
+          },
+        ]);
+        //success
+      } else {
+        const data = json as SearchResponse;
+        setChat((old) => [
+          ...old,
+          {
+            role: "assistant",
+            content: data.answer,
+            sources: data.sources,
+            time: timeDiff,
+          },
+        ]);
+      }
+    } catch (e) {
+      const timeDiff = Math.round(performance.now() - oldTime);
+      const errorMsg = "Request failed";
+      setChat((old) => [
+        ...old,
+        {
+          role: "assistant",
+          content: "I tried to ans, but something went wrong. Please try again",
+          sources: [],
+          time: timeDiff,
+          error: errorMsg,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleChatSubmit(e: FormEvent) {
+    e.preventDefault();
+    const prompt = query.trim();
+    if (!prompt || loading) return;
+    setQuery("");
+    await runSearch(prompt);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-dvh flex-col bg-[#f9fafb] text-gray-900">
+      <header className="border-b bg-white px-4 py-3 text-sm flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-800">
+            Search V1 (LCEL Web Agent)
+          </span>
+          <span className="text-[12px] text-gray-500">
+            Answer with sources. Some queries will browse the web and some
+            don't.
+          </span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </header>
+      <main className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+        {chat.length === 0 && (
+          <div className="mx-auto max-2-2xl text-center text-sm text-gray-500">
+            <div className="text-base font-semibold text-gray-800 mb-1">
+              Ask anything
+            </div>
+            <div className="text-[14px] leading-relaxed">
+              Examples:
+              <br />
+              <code className="rounded bg-gray-100 px-1 py-2 text-[12px]">
+                Top 10 engineering colleges in India 2025
+              </code>
+              <br />
+              <code className="rounded bg-gray-100 px-1 py-2 text-[12px]">
+                Explain what docker is for beginners
+              </code>
+            </div>
+          </div>
+        )}
+        {chat.map((turn, idx) => {
+          // user role
+          if (turn.role === "user") {
+            return (
+              <div
+                key={idx}
+                className="mx-auto max-w-2xl flex justify-end text-right"
+              >
+                <div className="inline-block rounded-2xl bg-gray-900 px-4 py-3 text-sm text-white shadow-md max-w-full">
+                  <div className="whitespace-pre-wrap wrap-break-word">
+                    {turn.content}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          //assitant
+          return (
+            <div
+              key={idx}
+              className="mx-auto max-w-2xl flex items-start gap-3 text-left"
+            >
+              <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-gray-800 text-[11px] text-white font-semibold">
+                AI
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="inline-block rounded-2xl bg-white px-4 py-3 text-sm text-gray-900 shadow-sm ring-1 ring-gray-200 whitespace-pre-wrap wrap-break-word">
+                  {turn.content}
+                </div>
+                <div className="text-[11px] text-gray-500 flex flex-wrap items-center gap-x-2">
+                  {typeof turn.time === "number" && (
+                    <span>answered in {turn.time} time</span>
+                  )}
+                  {turn?.error && <span>{turn.error}</span>}
+                </div>
+                {turn.sources && turn.sources.length > 0 && (
+                  <div className="rounded-lg  bg-white px-3 py-2 text-[12px] shadow-sm ring-1 ring-gray-200">
+                    <div className="text-[11px] font-medium text-gray-600 mb-1">
+                      Sources
+                    </div>
+                    <ul className="space-y-1">
+                      {turn.sources.map((source, idx) => (
+                        <li key={idx} className="truncate">
+                          <Link
+                            href={source}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-500 underline underline-offset-4 break-all"
+                          >
+                            {source}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {loading && (
+          <div className="mx-auto max-w-2xl flex items-start gap-3 text-left">
+            <div className="flex h-8 w-8 flex-none items-center justify-center rounded-md bg-gray-700 text-[11px] font-semibold text-white">
+              ...
+            </div>
+            <p className="inline-block rounded-2xl bg-white px-4 py-3 text-sm text-gray-900 shadow-sm ring-1 ring-gray-200">
+              Thinking
+            </p>
+          </div>
+        )}
+        <footer className="border-t bg-white px-4 py-4">
+          <form
+            onSubmit={handleChatSubmit}
+            className="mx-auto flex w-full max-w-2xl items-center gap-2"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+            <div>
+              <Input
+                className="w-full resize-none"
+                placeholder="Ask your query..."
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <Button
+              className="shrink-0"
+              disabled={loading || query.trim().length < 5}
+              type="submit"
+            >
+              {loading ? "..." : "Send"}
+            </Button>
+          </form>
+        </footer>
       </main>
     </div>
   );
