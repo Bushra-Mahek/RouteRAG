@@ -1,5 +1,9 @@
 # RouteRAG - Citation-Grounded Web & Document Research Workspace
 
+**Live Demo:** https://routerag-client.onrender.com
+
+An interactive AI research assistant that combines real-time web intelligence with a private, document-grounded knowledge base—delivering verified, source-cited answers without hallucinations.
+
 A full-stack AI search and Retrieval-Augmented Generation (RAG) platform built with **Next.js**, **TypeScript**, **Node.js**, **Express.js**, and **LangChain.js (LCEL)**. It dynamically routes user queries between direct LLM inference and live Tavily web scraping/summarization, and provides a grounded document ingestion and Q&A workspace.
 
 ---
